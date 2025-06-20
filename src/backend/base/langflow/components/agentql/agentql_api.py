@@ -108,6 +108,13 @@ class AgentQL(Component):
     ]
 
     def build_output(self) -> Data:
+        if not self.prompt and not self.query:
+            self.status = MISSING_REQUIRED_INPUTS_MESSAGE
+            raise ValueError(self.status)
+        if self.prompt and self.query:
+            self.status = TOO_MANY_INPUTS_MESSAGE
+            raise ValueError(self.status)
+
         endpoint = "https://api.agentql.com/v1/query-data"
         headers = {
             "X-API-Key": self.api_key,
@@ -129,13 +136,6 @@ class AgentQL(Component):
                 "experimental_stealth_mode_enabled": self.is_stealth_mode_enabled,
             },
         }
-
-        if not self.prompt and not self.query:
-            self.status = MISSING_REQUIRED_INPUTS_MESSAGE
-            raise ValueError(self.status)
-        if self.prompt and self.query:
-            self.status = TOO_MANY_INPUTS_MESSAGE
-            raise ValueError(self.status)
 
         try:
             response = httpx.post(endpoint, headers=headers, json=payload, timeout=self.timeout)
